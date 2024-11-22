@@ -1,0 +1,18 @@
+found = 1700 (a la "founded")
+own = 596
+establish = 408
+create = 390
+become = 384 (one company became another??)
+form = 266 (multiple companies form to make one?)
+acquire = 139 *
+relaunched = 94
+merge = 81
+join = 70
+purchase = 61
+rebranded = 24
+fuse = 21
+
+
+
+
+

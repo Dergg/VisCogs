@@ -1,4 +1,4 @@
-found = 1700 (a la "founded")
+found = 1700 (a la "founded"?)
 own = 596
 establish = 408
 create = 390

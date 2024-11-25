@@ -33,9 +33,15 @@ rdq['profile_string'] = rdq['profile_tokenised'].apply(lambda x: ' '.join([item 
 # nltk.download('punkt_tab')
 # ^^ Above packages have already been downloaded.
 print("Tagging tokens...")
-if sys.argv[1] == "test":
-    rdq['tagged_tokens'] = rdq['profile_string'].head(1000).progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
-elif sys.argv[1] == "full":
-    rdq['tagged_tokens'] = rdq['profile_string'].progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
+try:
+    if sys.argv[1] == "test":
+        rdq['tagged_tokens'] = rdq['profile_string'].head(1000).progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
+    elif sys.argv[1] == "build":
+        rdq['tagged_tokens'] = rdq['profile_string'].progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
+    else:
+        print("You have not specified a tagging method. Please use test or build depending on what you want.")
+except:
+    print("No command specified. Please use 'test' or 'build' when running the program to correctly tag tokens.")
+    exit()
 print("Done.")
 print(rdq.iloc[0]['tagged_tokens']) # Show the head for now. We can build from this later.

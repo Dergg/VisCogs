@@ -2,7 +2,6 @@
 # Working with the data
 
 import spacy
-import nltk
 import pandas as pd
 import nltk
 import sys # For command line inputs
@@ -37,7 +36,10 @@ try:
     if sys.argv[1] == "test":
         rdq['tagged_tokens'] = rdq['profile_string'].head(1000).progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
     elif sys.argv[1] == "build":
+        print("Build mode has been specified. Please be patient, this might take a little while.")
         rdq['tagged_tokens'] = rdq['profile_string'].progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
+        rdq.to_csv('processedDiscogs.csv', sep='\t', encoding='utf-8', index=False) # Write dataframe to CSV.
+        print("Dataframe written to CSV file.")
     else:
         print("You have not specified a tagging method. Please use test or build depending on what you want.")
 except:

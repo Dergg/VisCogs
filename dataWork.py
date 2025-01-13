@@ -5,7 +5,7 @@ import spacy
 import pandas as pd
 import nltk
 import sys # For command line inputs
-from nltk.tokenize import WhitespaceTokenizer
+from nltk.tokenize import WhitespaceTokenizer, sent_tokenize
 from alive_progress import alive_bar # I like this progress bar better...
 from tqdm import tqdm # ...but this progress bar works better for pandas operations
 
@@ -22,10 +22,24 @@ rdq['all_hyperlinks'] = rdq['profile'].str.extract(r'\[(.*?)\]') # Regex to just
 # rdq['hl_rep'] = rdq.apply(lambda row: (row['hl_type'], row['all_hyperlinks']), axis=1) # Combine to get a tuple of (artist/label, name)
 # print(rdq['hl_rep'].head(3))
 
-tk = WhitespaceTokenizer()
+wtk = WhitespaceTokenizer()
 print("Tokenising profiles...")
-rdq['profile_tokenised'] = rdq['profile'].progress_apply(lambda x: tk.tokenize(x))
+rdq['sentences'] = rdq['profile'].progress_apply(lambda x: sent_tokenize(x))
+print(rdq['sentences'].values[0])
+rdq['profile_tokenised'] = rdq['profile'].progress_apply(lambda x: nltk.word_tokenize(x))
 print("Profiles tokenised.")
+
+def process_text(text):
+    sentences = sent_tokenize(text)
+    tokenized_sentences = [nltk.word_tokenize(sentence) for sentence in sentences]
+    tagged_sentences = [nltk.pos_tag(sentence) for sentence in tokenized_sentences]
+    return tagged_sentences
+
+print("Tagging sentences...")
+
+# Apply the function to the DataFrame
+rdq['tagged_sentences'] = rdq['profile'].progress_apply(process_text)
+print("Done.")
 
 rdq['profile_string'] = rdq['profile_tokenised'].apply(lambda x: ' '.join([item for item in x]))
 # nltk.download('averaged_perceptron_tagger_eng')
@@ -37,12 +51,13 @@ try:
         rdq['tagged_tokens'] = rdq['profile_string'].head(1000).progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
     elif sys.argv[1] == "build":
         print("Build mode has been specified. Please be patient, this might take a little while.")
-        rdq['tagged_tokens'] = rdq['profile_string'].progress_apply(lambda x: nltk.pos_tag(nltk.tokenize.word_tokenize(x)))
-        rdq.to_csv('processedDiscogs.csv', sep='\t', encoding='utf-8', index=False) # Write dataframe to CSV.
+        rdq['tagged_tokens'] = rdq['profile_tokenised'].progress_apply(lambda x: nltk.pos_tag(x))
+        rdq.to_csv('processedDiscogs.csv') # Write dataframe to CSV.
         print("Dataframe written to CSV file.")
     else:
         print("You have not specified a tagging method. Please use test or build depending on what you want.")
-except:
+except Exception as e:
+    print(e)
     print("No command specified. Please use 'test' or 'build' when running the program to correctly tag tokens.")
     exit()
 print("Done.")

@@ -2,3 +2,4 @@
 discogs_data.csv
 /.vscode
 processedDiscogs.csv
+*.csv

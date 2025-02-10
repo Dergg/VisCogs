@@ -3,6 +3,7 @@
 # Take things from the processed and tagged Discogs data.
 
 import sys
+import argparse
 from ast import literal_eval
 import traceback
 import re
@@ -20,10 +21,17 @@ from nltk.chunk import ne_chunk
 # nltk.download('words')
 # Above packages have been downloaded already.
 
+parser = argparse.ArgumentParser(prog='nelm', description='Generate node and edge list')
+parser.add_argument('infile') # Specify the file going in
+parser.add_argument('-n', '--node', action='store_true')
+parser.add_argument('-e', '--edge', action='store_true')
+parser.add_argument('-x', '--experiment', action='store_true')
+args = parser.parse_args()
+
 tqdm.pandas()
 
 print("Reading data...")
-data = pd.read_csv('processedDiscogs.csv')
+data = pd.read_csv(f'{args.infile}.csv')
 print("Complete.")
 
 def find_fullstop(sentence):
@@ -33,7 +41,7 @@ def find_fullstop(sentence):
             return i
 
 try:
-    if sys.argv[1] == 'node':
+    if args.node == True:
         nodelist = []
         print("WIP") # Find dates of when labels were founded
         for i in range(data.shape[0]):
@@ -45,9 +53,9 @@ try:
             else:
                 labelList.append(data['parent_name'].values[i]) # Otherwise add it
 
-    elif sys.argv[1] == 'edge':
+    elif args.edge == True:
         print("WIP")
-    elif sys.argv[1] == 'experiment':
+    elif args.experiment == True:
         print("Please be aware that experimentation can cause severe brain messery.")
         target_words = ["founded", "formed"]
         surrounding_context = []
@@ -66,18 +74,22 @@ try:
                     surrounding_context.append((context, name)) # Surrounding context is a list of tuples in the form (list, string)
                     # Each "context" itself is also a list of tuples.
                     if len(surrounding_context) >= 10:
-                        scfull = True
+                        #scfull = True
                         break
         
         print(f'Found {len(surrounding_context)} different sentences.') 
 
         # Pattern matching goes here, make sure you account for format (word, tag)
         
+        # NLTK Patterns
         patterns = [
             re.compile(r'VBN IN CD IN (NNP|NN)+'),
             re.compile(r'VBN IN CD'),
             re.compile(r'VBN IN (NNP|NN)+')
         ] # Add more to this later if things aren't getting caught
+        # See if spaCy can get these patterns too? Penn Treebank Project POS tags
+
+
 
 
         # Extracted information
@@ -117,13 +129,9 @@ try:
                         by_idx = tags.index('IN', year_idx + 1)  # Index of "by"
                         potential_founders = words[by_idx + 1:]  # Words after "by"
                         
-                        # Stop at conjunctions ("and", "or") or prepositions ("as", "with")
-                        stop_words = {"and", "or", "as", "with"}
                         founders = []
                         
                         for word, tag in zip(potential_founders, tags[by_idx + 1:]):
-                            if word.lower() in stop_words:
-                                break
                             if tag == "NNP":  # Only consider proper nouns
                                 founders.append(word)
                         
@@ -153,6 +161,23 @@ try:
         # breakdown = surrounding_context
         # print(type(breakdown))
 
+        #########################
+        ### SCORING GOES HERE ###
+        #########################
+
+        # Function to write generated results to a text file
+        def write_results_to_file(results, file_path):
+            with open(file_path, "w", encoding="utf-8") as file:
+                for entry in results:
+                    file.write(f"Label: {entry['label']}\n")
+                    file.write(f"Year: {entry['year']}\n")
+                    file.write(f"Founders: {entry['founders']}\n\n")  # Add spacing
+
+        write_results_to_file(extracted_info, 'nltkgenout.txt')
+
+
+    elif sys.argv[1] == 'test':
+        print("Test")
     else:
         print("Please specify if you want to make an edge or a node list.")
 

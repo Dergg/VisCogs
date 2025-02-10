@@ -1,0 +1,40 @@
+Label: Compton
+Year: 1998
+Founders: ['Mark Stephenson', 'Label Alpha']
+
+Label: Bravo Records
+Year: 1994
+Founders: ['Maria West', 'John Todd']
+
+Label: Co Records
+Year: Unknown
+Founders: ['Charlie Beans', 'Charlie', 'Charlie and Co Records']
+
+Label: Delta Force
+Year: 2012
+Founders: ["Darren Jiggy's", "Darren Jiggy 's classic label , Delta Force ,"]
+
+Label: Unknown
+Year: Unknown
+Founders: ['Mike', 'Echoplex']
+
+Label: Fox Alive Again's
+Year: 1987
+Founders: []
+
+Label: Greyzone
+Year: 2005
+Founders: 
+
+Label: Waving Records
+Year: 2012
+Founders: 
+
+Label: Influential Decision
+Year: 2019
+Founders: ['Influential Decision', 'Deathnote Records']
+
+Label: Inglewood
+Year: 2019
+Founders: 
+

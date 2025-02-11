@@ -68,14 +68,14 @@ try:
                 if scfull == True:
                     break
                 if word.lower() in target_words and scfull == False:
-                    context = ts[0][max(0, i-3):find_fullstop(ts[0])]
+                    context = ts[0]
                     name = data.iloc[idx]['name']
                     print(f'Found word: {word}\n Context: {context}')
                     surrounding_context.append((context, name)) # Surrounding context is a list of tuples in the form (list, string)
                     # Each "context" itself is also a list of tuples.
-                    if len(surrounding_context) >= 10:
-                        #scfull = True
-                        break
+                    # if len(surrounding_context) >= 10:
+                    #     scfull = True
+                    #     break
         
         print(f'Found {len(surrounding_context)} different sentences.') 
 
@@ -95,7 +95,10 @@ try:
         # Extracted information
         extracted_info = []
 
+        print("Surrounding context:", surrounding_context)
         for context, label_name in surrounding_context:
+            print(f'Context: {context}')
+            print(f'Label name: {label_name}')
             words, tags = zip(*context)  # Separate words and tags
             print(f'Words: {words}')
             print(f'Tags: {tags}')

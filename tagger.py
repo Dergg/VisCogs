@@ -16,7 +16,7 @@ parser.add_argument('-spacy', '--use_spacy', action='store_true')
 
 args = parser.parse_args()
 
-rdq = pd.read_csv(f"{args.filename}.csv")
+rdq = pd.read_csv(f"./csvs/{args.filename}.csv")
 tqdm.pandas() # For pandas magic (progress bars, yippee)
 
 if args.use_nltk == True:
@@ -49,11 +49,7 @@ def process_text(text):
         return tagged_sentences
 
 def tag_and_token(text):
-    print(text)
-    if args.use_nltk == True:
-        return text
-    elif args.use_spacy == True:
-        return text
+    return text
 
 print("Tagging sentences...")
 
@@ -71,11 +67,10 @@ print(rdq.iloc[0]['tagged_sentences'])
 print("Tagging tokens...")
 try:
     if args.option == 'test':
-        rdq['tagged_tokens'] = rdq['tagged_sentences'].head(1000).progress_apply(lambda x: tag_and_token(x))
+        rdq['tagged_tokens'] = rdq['tagged_sentences'].head(1000).progress_apply(lambda x: tag_and_token(x)) # tag_and_token does nothing.
     elif args.option == 'build':
         print("Build mode has been specified. Please be patient, this might take a little while.")
-        rdq['tagged_tokens'] = rdq['tagged_sentences'].progress_apply(lambda x: tag_and_token(x))
-        rdq.to_csv(f'{args.outfile}.csv') # Write dataframe to CSV.
+        rdq.to_csv(f'./csvs/{args.outfile}.csv') # Write dataframe to CSV.
         print("Dataframe written to CSV file.")
     else:
         print("You have not specified a tagging method. Please use test or build depending on what you want.")
@@ -84,4 +79,4 @@ except Exception as e:
     print("No command specified. Please use 'test' or 'build' when running the program to correctly tag tokens.")
     exit()
 print("Done.")
-print(rdq.iloc[2]['tagged_tokens']) # Show the head for now. We can build from this later.
+print(rdq.iloc[2]['tagged_sentences']) # Show the head for now. We can build from this later.

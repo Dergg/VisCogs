@@ -29,7 +29,7 @@ verb_counts = Counter(all_verbs)
 sorted_verb_counts = sorted(verb_counts.items(), key=lambda x: x[1], reverse=True)
 print(sorted_verb_counts[0])
 
-with open('verb_counts.txt', 'w') as f:
+with open('./txts/verb_counts.txt', 'w') as f:
     print(sorted_verb_counts, file=f)
 
 print("Most common verbs now outputted to a text file.")

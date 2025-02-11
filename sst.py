@@ -8,6 +8,10 @@ import argparse
 import traceback
 import pandas as pd
 from difflib import SequenceMatcher
+import re
+from collections import Counter
+from itertools import tee
+
 
 parser = argparse.ArgumentParser(prog='sst', description='Special SpaCy Tagging software')
 parser.add_argument('infile')
@@ -21,47 +25,77 @@ if args.use_sm: # Simpler
 if args.use_lg: # More in-depth parsing
     nlp = spacy.load('en_core_web_lg')
 
-df = pd.read_csv(f'{args.infile}.csv')
+try:
+    df = pd.read_csv(f'./csvs/{args.infile}.csv')
+except Exception as e:
+    print(f'{args.infile}.csv not found in the ./csvs folder. Please check your spelling, or whether the file exists.')
+
 
 def extract_info(text):
     doc = nlp(text)
-
-    label = 'Unknown'
+    label = "Unknown"
     founders = []
-    year = 'Unknown'
+    year = "Unknown"
 
-    print(doc)
+    # Merge Entities to Keep Full Names Together
+    with doc.retokenize() as retokenizer:
+        for ent in doc.ents:
+            if ent.label_ == "PERSON":
+                retokenizer.merge(ent)
 
-    # Step 1: Use NER to extract known entities
+    # Extract Founders (NER + POS)
     for ent in doc.ents:
-        if ent.label_ == "ORG":  # Likely record labels
-            label = ent.text
-        elif ent.label_ == "PERSON":  # Founders
+        if ent.label_ == "PERSON":
             founders.append(ent.text)
-        elif ent.label_ == "DATE" and any(char.isdigit() for char in ent.text):  # Extract year
-            year = ent.text
 
-    # Step 2: Use Dependency Parsing to find subjects of "founded"
+    # If no founders found via NER, use PROPN sequences
+    if not founders:
+        temp_name = []
+        for token in doc:
+            if token.pos_ == "PROPN": # This might not be brilliant, could pick up on people / place names?
+                temp_name.append(token.text)
+            elif temp_name:
+                founders.append(" ".join(temp_name))
+                temp_name = []
+
+    # Extract label (generalized)
+    label = next((ent.text for ent in doc.ents if ent.label_ == "ORG"), "Unknown")
+
+    if label == "Unknown":
+        for token in doc:
+            if token.lemma_ in {"found", "create", "establish"}:
+                candidates = [child.text for child in token.children if child.dep_ in {"nsubj", "dobj"}]
+                if candidates:
+                    label = max(candidates, key=len)  # Pick longest candidate
+
+    # Extract year (choose the earliest year, naively)
+    years = [int(match.group()) for match in re.finditer(r'\b(19\d{2}|20\d{2})\b', text)]
+    if years:
+        year = str(min(years))
+
+    # Extract Founders Using Dependency Parsing (Without Over-Traversing)
     for token in doc:
         if token.lemma_ == "found" and token.dep_ in {"ROOT", "acl"}:
-            # Get subject (who founded the label)
-            subj = [child for child in token.lefts if child.dep_ in {"nsubj", "nsubjpass"}]
-            if subj:
-                band_name = " ".join([t.text for t in subj[0].subtree])
-                founders.append(band_name)
+            for child in token.children:
+                if child.dep_ in {"nsubj", "nsubjpass"}:
+                    founders.append(child.text)  # Don't grab full subtree
 
-    founder = ""
-    if len(founders) == 1:
-        founder == founders[0]
-        return {"Label": label, "Founders": founder, "Year": year}
-    else:
-        return {"Label": label, "Founders": list(set(founders)), "Year": year}
+    # Remove Duplicates & Cleanup
+    founders = list(set(founders)) or "Unknown"
+
+    return {"Label": label, "Founders": ", ".join(founders), "Year": year}
+
+# Process all sentences
+generated_results = [extract_info(sentence) for sentence in df['cleaned_sentence']]
 
 
 generated_results = []
 # Extract information
 for sentence in df['cleaned_sentence']:
     generated_results.append(extract_info(sentence))
+    
+for i in range(len(generated_results)):
+    print(generated_results[i])
 
 # Function to write generated results to a text file
 def write_results_to_file(results, file_path):
@@ -71,4 +105,4 @@ def write_results_to_file(results, file_path):
             file.write(f"Year: {entry['Year']}\n")
             file.write(f"Founders: {entry['Founders']}\n\n")  # Add spacing
 
-write_results_to_file(generated_results, 'genout.txt')
+write_results_to_file(generated_results, './txts/genout.txt')

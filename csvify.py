@@ -6,7 +6,7 @@
 import pandas as pd
 import argparse
 
-file_path = "test_sentences.txt" 
+file_path = "./txts/test_sentences.txt" 
 with open(file_path, "r") as file:
     lines = file.readlines()
 
@@ -23,6 +23,6 @@ df['id'] = id
 df['name'] = name
 
 print(df)
-df.to_csv('test_sentences.csv')
+df.to_csv('./csvs/test_sentences.csv')
 print("CSV made.")
 

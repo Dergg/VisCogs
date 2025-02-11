@@ -176,7 +176,7 @@ try:
                     file.write(f"Year: {entry['year']}\n")
                     file.write(f"Founders: {entry['founders']}\n\n")  # Add spacing
 
-        write_results_to_file(extracted_info, 'nltkgenout.txt')
+        write_results_to_file(extracted_info, './txts/nltkgenout.txt')
 
 
     elif sys.argv[1] == 'test':

@@ -20,7 +20,7 @@ if args.pandas == True:
     tqdm.pandas() # Progress bar for pandas stuff.
 
     print("Reading data...")
-    rdq = pd.read_csv(f"{args.filename}.csv")
+    rdq = pd.read_csv(f"./csvs/{args.filename}.csv")
     print("Done.")
     if args.filename == 'discogs_data':
         rdq = rdq.query('data_quality != "Needs Major Changes"')
@@ -39,6 +39,10 @@ if args.pandas == True:
     rdq["cleaned_sentence"] = rdq["profile"].str.replace(pattern_a_equals, r"\1", regex=True)
     rdq["cleaned_sentence"] = rdq["cleaned_sentence"].str.replace(pattern_a_number, r"\1", regex=True)
 
-    rdq.to_csv(f'{args.outfile}.csv') # Write dataframe to CSV.
+    rdq.to_csv(f'./csvs/{args.outfile}.csv') # Write dataframe to CSV.
     print(rdq['cleaned_sentence'][0])
     print("Cleaned dataframe now outputted to CSV.")
+
+else:
+
+    print("You forgot the -p at the end. Please use this for Pandas stuff.")

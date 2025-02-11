@@ -36,8 +36,8 @@ def parse_tts(file_path):
 
     return expected
 
-expected_results = parse_tts('expected_output.txt')
-generated_results = parse_tts(f'{args.infile}.txt')
+expected_results = parse_tts('./txts/expected_output.txt')
+generated_results = parse_tts(f'./txts/{args.infile}.txt')
 
 # String similarity function
 def similarity_score(a, b):
@@ -52,9 +52,15 @@ def evaluate_results(expected, generated):
     print(f'Generated: {generated}')
 
     for exp, gen in zip(expected, generated):
-        label_score = similarity_score(exp["Label"], gen["Label"])
+        if exp['Label'] == 'Unknown':
+            label_score = 1 if exp['Label'] == gen['Label'] else 0
+        else:
+            label_score = similarity_score(exp["Label"], gen["Label"])
         year_score = 1 if exp["Year"] == gen["Year"] else 0  # Exact match for year
-        founder_score = similarity_score(exp["Founders"], gen["Founders"])
+        if exp['Founders'] == 'Unknown':
+            founder_score = 1 if exp['Founders'] == gen['Founders'] else 0
+        else:
+            founder_score = similarity_score(exp["Founders"], gen["Founders"])
 
         entry_score = label_score + year_score + founder_score
         total_score += entry_score

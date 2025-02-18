@@ -1,0 +1,52 @@
+[
+    {
+        "Label": "Label Alpha",
+        "Year": "1998",
+        "Founders": "Mark Stephenson"
+    },
+    {
+        "Label": "Bravo Records",
+        "Year": "1994",
+        "Founders": "John Todd, Maria West"
+    },
+    {
+        "Label": "Charlie and Co",
+        "Year": "Unknown",
+        "Founders": "Charlie Beans, Westside"
+    },
+    {
+        "Label": "Delta Force",
+        "Year": "2012",
+        "Founders": "Darren Jiggy"
+    },
+    {
+        "Label": "Echoplex",
+        "Year": "Unknown",
+        "Founders": "Mike on da Mic"
+    },
+    {
+        "Label": "Unknown",
+        "Year": "1987",
+        "Founders": "Fox Alive Again"
+    },
+    {
+        "Label": "Unknown",
+        "Year": "2005",
+        "Founders": "Greyzone"
+    },
+    {
+        "Label": "Waving Records",
+        "Year": "2012",
+        "Founders": "Hello There"
+    },
+    {
+        "Label": "Unknown",
+        "Year": "2019",
+        "Founders": "Influential Decision"
+    },
+    {
+        "Label": "JKR",
+        "Year": "2010",
+        "Founders": "Just Kidding"
+    }
+]

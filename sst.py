@@ -12,11 +12,14 @@ import re
 from collections import Counter
 from itertools import tee
 
+import spacy.displacy
+
 
 parser = argparse.ArgumentParser(prog='sst', description='Special SpaCy Tagging software')
 parser.add_argument('infile')
 parser.add_argument('-sm', '--use_sm', action='store_true')
 parser.add_argument('-lg', '--use_lg', action='store_true')
+parser.add_argument('-displacy', '--displacy', action='store_true')
 args = parser.parse_args()
 
 if args.use_sm: # Simpler 
@@ -106,3 +109,10 @@ def write_results_to_file(results, file_path):
             file.write(f"Founders: {entry['Founders']}\n\n")  # Add spacing
 
 write_results_to_file(generated_results, './txts/genout.txt')
+
+def serve_displacy(text):
+    doc = nlp(text)
+    spacy.displacy.serve(doc, style='dep')
+
+if args.displacy == True:
+    (serve_displacy(sentence) for sentence in df['cleaned_sentence'])

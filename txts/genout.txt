@@ -1,39 +1,40 @@
-Label: Compton
+Label: Unknown
 Year: 1998
-Founders: Compton, Label Alpha, Mark Stephenson
+Founders: Compton, Alpha, Mark Stephenson
 
 Label: Bravo Records
 Year: 1994
-Founders: Bravo Records, John Todd, Maria West
+Founders: Maria West, John Todd
 
 Label: Co Records
 Year: Unknown
-Founders: Charlie, Charlie Beans, Co Records, Westside
+Founders: Charlie, Records, Charlie Beans
 
 Label: Delta Force
 Year: 2012
-Founders: Darren Jiggy, Darren Jiggy's, Delta Force
+Founders: label, Darren Jiggy's
 
 Label: Unknown
 Year: Unknown
-Founders: Echoplex, Florida, Miami, Mike, da Mic
+Founders: Mike, Echoplex
 
-Label: Fox Alive Again's
+Label: Unknown
 Year: 1987
-Founders: Fox Alive Again
+Founders: Fox
 
 Label: Greyzone
 Year: 2005
-Founders: California, Greyzone
+Founders: California, label, Greyzone
 
 Label: Waving Records
 Year: 2012
-Founders: Brazil, Waving Records
+Founders: Waving Records, Brazil
 
-Label: Influential Decision
+Label: Decision
 Year: 2019
-Founders: Deathnote Records
+Founders: Deathnote Records, Decision
 
-Label: Inglewood
+Label: Kidding
 Year: 2010
-Founders: California, Inglewood, JKR, Kidding
+Founders: JKR, Kidding
+

@@ -164,10 +164,6 @@ try:
         # breakdown = surrounding_context
         # print(type(breakdown))
 
-        #########################
-        ### SCORING GOES HERE ###
-        #########################
-
         # Function to write generated results to a text file
         def write_results_to_file(results, file_path):
             with open(file_path, "w", encoding="utf-8") as file:

@@ -28,6 +28,10 @@ if args.use_sm: # Simpler
 if args.use_lg: # More in-depth parsing
     nlp = spacy.load('en_core_web_lg')
 
+if not args.use_sm and not args.use_lg:
+    nlp = spacy.load('en_core_web_sm')
+    print("Using default of spaCy SM model.")
+
 try:
     df = pd.read_csv(f'./csvs/{args.infile}.csv')
 except Exception as e:

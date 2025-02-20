@@ -1,3 +1,5 @@
+# Deprecated. Do not use.
+
 import spacy
 import pandas as pd
 import sys # For command line inputs

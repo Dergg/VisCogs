@@ -2,6 +2,8 @@
 # Node & Edge List Maker Program
 # Take things from the processed and tagged Discogs data.
 
+# DO NOT USE!
+
 import sys
 import argparse
 from ast import literal_eval
@@ -31,7 +33,7 @@ args = parser.parse_args()
 tqdm.pandas()
 
 print("Reading data...")
-data = pd.read_csv(f'{args.infile}.csv')
+data = pd.read_csv(f'./csvs/{args.infile}.csv')
 print("Complete.")
 
 def find_fullstop(sentence):
@@ -57,8 +59,11 @@ try:
         print("WIP")
     elif args.experiment == True:
         print("Please be aware that experimentation can cause severe brain messery.")
+        print("This is using NLTK, not spaCy, which is more accurate. You shouldn't be running this!")
         target_words = ["founded", "formed"]
+        acq_vb = ["acquired", "purchased", "bought", "taken over", "absorbed", "merged"]
         surrounding_context = []
+        acq_context = []
         scfull = False
         for idx, tagged_sentence in enumerate(data['tagged_sentences']):
             ts = literal_eval(tagged_sentence) # Convert into list as it is a string for some reason
@@ -76,6 +81,15 @@ try:
                     # if len(surrounding_context) >= 10:
                     #     scfull = True
                     #     break
+            words_only = [word for word, tag in ts[0]]
+            sent_lower = [word.lower() for word in words_only]
+            for verb in acq_vb:
+                if verb in sent_lower:
+                    context = ts[0]
+                    label_name = data.iloc[idx]['name']
+                    acq_context.append((context, label_name))
+                    break
+
         
         print(f'Found {len(surrounding_context)} different sentences.') 
 
@@ -155,24 +169,80 @@ try:
 
                     break
 
+        acq_data = []
+        for context, acquired_label in acq_context:
+            words, tags = zip(*context)
+            sentence = ' '.join(words)
+            pos_sequence = ' '.join(tags)
+
+            year = next((word for word, tag in context if tag == 'CD' and re.match(r'\d{4}', word)), 'Unknown')
+            verb_idx = next((i for i, (word, _) in enumerate(context) if word.lower() in acq_vb), -1)
+
+            if verb_idx > 0:
+                poss_acq = []
+                for i in range(verb_idx -1, -1, -1):
+                    if tags[i] == 'NNP':
+                        poss_acq.insert(0, words[i])
+                    else:
+                        break
+                acquirer = ' '.join(poss_acq) if poss_acq else 'Unknown'
+
+            else:
+                acquirer = 'Unknown'
+
+            acq_data.append({
+                'Subject': acquirer,
+                'Object': acquired_label,
+                'Year': year,
+                'Type': 'ACQ'
+            })
+
         # Print extracted information
         for info in extracted_info:
             print(f"Label: {info['label']}\nYear: {info['year']}\nFounders: {info['founders']}\n")
+
+        for info in acq_data:
+            print(f'Subject: {info['Subject']}\nObject: {info['Object']}\nYear: {info['Year']}')
 
         # NOTE: The year seems to be extracting successfully, the biggest issue now is trying to figure out the Founders thing.
         # print(f'Surrounding context type = {type(surrounding_context)}')
         # breakdown = surrounding_context
         # print(type(breakdown))
 
+        final_data = []
+        for entry in extracted_info:
+            final_data.append({
+                'type': 'FND',
+                'label': entry['label'],
+                'year': entry['year'],
+                'founders': entry['founders']
+            })
+
+        for entry in acq_data:
+            final_data.append({
+                'type': 'ACQ',
+                'subject': entry['Subject'],
+                'object': entry['Object'],
+                'year': entry['Year']
+            })
+
         # Function to write generated results to a text file
         def write_results_to_file(results, file_path):
             with open(file_path, "w", encoding="utf-8") as file:
                 for entry in results:
-                    file.write(f"Label: {entry['label']}\n")
-                    file.write(f"Year: {entry['year']}\n")
-                    file.write(f"Founders: {entry['founders']}\n\n")  # Add spacing
+                    if entry['type'] == 'FND':
+                        file.write(f"Type: {entry['type']}\n")
+                        file.write(f"Label: {entry['label']}\n")
+                        file.write(f"Year: {entry['year']}\n")
+                        file.write(f"Founders: {entry['founders']}\n\n")  # Add spacing
+                    else:
+                        file.write(f"Type: {entry['type']}\n")
+                        file.write(f"Subject: {entry['subject']}\n")
+                        file.write(f"Object: {entry['object']}\n")
+                        file.write(f"Year: {entry['year']}\n\n")  # Add spacing
 
-        write_results_to_file(extracted_info, './txts/nltkgenout.txt')
+
+        write_results_to_file(final_data, './txts/genout.txt')
 
 
     elif sys.argv[1] == 'test':

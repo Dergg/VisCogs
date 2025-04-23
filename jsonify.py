@@ -13,14 +13,15 @@ def parse_text_file(input_file, output_file):
 
     with open(input_file, 'r', encoding='utf-8') as file:
         for line in file:
+            print(f"Parsing line: {line}")
             line = line.strip()
-            if not line:
+            if not line or '::' not in line:
                 if record:  
                     records.append(record)  
                     record = {}  
                 continue
 
-            key, value = line.split(": ", 1)
+            key, value = line.split(":: ", 1)
             record[key] = value
 
     if record:

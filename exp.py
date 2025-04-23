@@ -1,3 +1,5 @@
+
+
 import spacy
 import pandas as pd
 import argparse
@@ -28,13 +30,23 @@ except FileNotFoundError:
     print(f"Error: {args.infile}.csv not found in the ./csvs folder.")
     exit(1)
 
+acq_vb = {'acquire', 'purchase', 'buy', 'merge', 'acquired', 'purchased', 'bought', 'merged'}
+
 def extract_info(text):
     """Extracts Named Entities and Other Relevant Information from Text."""
     doc = nlp(text)
     label = "Unknown"
     founders = set()
     year = "Unknown"
+    subject = 'Unknown'
+    object_ = 'Unknown'
+    event_type = 'FND' # Default to founding event
     
+    # Extract Year (Earliest Found)
+    years = [int(match.group()) for match in re.finditer(r'\b(19\d{2}|20\d{2})\b', text)]
+    if years:
+        year = str(min(years))
+
     # Extract Entities (Using NER)
     for ent in doc.ents:
         if ent.label_ == "PERSON":
@@ -55,14 +67,31 @@ def extract_info(text):
     if numeric_entities:
         founders.update(numeric_entities)
 
-    # Extract Year (Earliest Found)
-    years = [int(match.group()) for match in re.finditer(r'\b(19\d{2}|20\d{2})\b', text)]
-    if years:
-        year = str(min(years))
-
     # Extract Additional Founders Using POS Tagging (Proper Nouns)
     temp_name = []
     for token in doc:
+        # Acquisition
+        if token.lemma_.lower() in acq_vb:
+            event_type = 'ACQ'
+            for child in token.children:
+                if child.dep_ in {'nsubj', 'nsubjpass'} and child.ent_type_ == 'ORG':
+                    subject = child.text
+            for child in token.children:
+                if child.dep_ in {'dobj', 'pobj'} and child.ent_type_ == 'ORG':
+                    object = child.text
+            if subject == 'Unknown':
+                for ent in doc.ents:
+                    if ent.label_ == 'ORG':
+                        subject = ent.text
+                        break
+            if object_ == 'Unknown':
+                orgs = [ent.text for ent in doc.ents if ent.label_ == 'ORG']
+                if len(orgs) > 1:
+                    object_ = orgs[1]
+
+            break
+
+        # Founding events
         if token.pos_ == "PROPN":
             temp_name.append(token.text)
         elif temp_name:
@@ -70,11 +99,20 @@ def extract_info(text):
             temp_name = []
 
     # Return Processed Data
-    return {
-        "Label": label,
-        "Founders": ", ".join(sorted(founders)) if founders else "Unknown",
-        "Year": year
-    }
+    if event_type == 'FND':
+        return {
+            "Type": event_type,
+            "Label": label,
+            "Founders": ", ".join(sorted(founders)) if founders else "Unknown",
+            "Year": year
+        }
+    else: # ACQ
+        return {
+            "Type": event_type,
+            "Subject": subject,
+            "Object": object_,
+            "Year": year
+        }
 
 # Process All Sentences
 generated_results = [extract_info(sentence) for sentence in df['cleaned_sentence']]
@@ -83,10 +121,11 @@ generated_results = [extract_info(sentence) for sentence in df['cleaned_sentence
 def write_results_to_file(results, file_path):
     """Writes extracted results to a text file in a structured format."""
     with open(file_path, "w", encoding="utf-8") as file:
-        file.write("\n".join([
-            f"Label: {entry['Label']}\nYear: {entry['Year']}\nFounders: {entry['Founders']}\n"
-            for entry in results
-        ]))
+        for res in results:
+            if res['Type'] == 'FND':
+                file.write(f'Type:: {res['Type']}\nLabel:: {res['Label']}\nYear:: {res['Year']}\nFounders:: {res['Founders']}\n\n')
+            elif res['Type'] == 'ACQ':
+                file.write(f'Type:: {res['Type']}\nSubject:: {res['Subject']}\nObject:: {res['Object']}\nYear:: {res['Year']}\n\n')
 
 write_results_to_file(generated_results, './txts/genout.txt')
 

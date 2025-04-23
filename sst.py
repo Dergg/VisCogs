@@ -2,7 +2,6 @@
 # This uses a different tagging methodology to pick up on things a little better
 
 import spacy
-import pandas
 import sys
 import argparse
 import traceback
@@ -43,6 +42,9 @@ def extract_info(text):
     label = "Unknown"
     founders = []
     year = "Unknown"
+    event_type = None # Save the Event Type so the graph generator knows what to do with it later
+    object = None # The label being acquired
+    subject = None # The label doing the acquisition
 
     # Merge Entities to Keep Full Names Together
     with doc.retokenize() as retokenizer:
@@ -90,7 +92,42 @@ def extract_info(text):
     # Remove Duplicates & Cleanup
     founders = list(set(founders)) or "Unknown"
 
-    return {"Label": label, "Founders": ", ".join(founders), "Year": year}
+    # == Acquisitions ==
+    for token in doc:
+        if token.lemma == 'acquire':
+            if token.dep_ == 'ROOT':
+                subj = [child.text for child in token.children if child.dep_ in {'nsubj'}]
+                obj = [child.text for child in token.children if child.dep_ in {'dobj', 'nsubjpass'}]
+                if subj and obj:
+                    subject = subj[0]
+                    object = obj[0]
+                    event_type = 'ACQ' # Acquisition event
+                    break
+
+        if token.text.lower() == 'acquired' and token.dep_ == 'ROOT':
+            by_child = [child for child in token.children if child.text.lower() == 'by']
+            if by_child:
+                by_obj = [c.text for c in by_child[0].children if c.dep_ == 'pobj']
+                subj = [child.text for child in token.children if child.dep_ in {'nsubj', 'nsubjpass'}]
+                if subj and by_obj:
+                    subject = subj[0]
+                    object = by_obj[0]
+                    event_type = 'ACQ'
+
+    # == OUTPUT ==
+    if event_type == 'ACQ' and subject and object:
+        return{
+            'Label1': subject,
+            'Label2': object,
+            'Year': year,
+            'Type': 'ACQ'
+        }
+    else:
+        return {
+            "Label": label,
+            "Founders": ", ".join(founders),
+            "Year": year,
+            'Type': 'FND'}
 
 # Process all sentences
 generated_results = [extract_info(sentence) for sentence in df['cleaned_sentence']]
@@ -108,9 +145,16 @@ for i in range(len(generated_results)):
 def write_results_to_file(results, file_path):
     with open(file_path, "w", encoding="utf-8") as file:
         for entry in results:
-            file.write(f"Label: {entry['Label']}\n")
-            file.write(f"Year: {entry['Year']}\n")
-            file.write(f"Founders: {entry['Founders']}\n\n")  # Add spacing
+            if entry['Type'] == 'FND':
+                file.write(f'Type: {entry['Type']}\n')
+                file.write(f"Label: {entry['Label']}\n")
+                file.write(f"Year: {entry['Year']}\n")
+                file.write(f"Founders: {entry['Founders']}\n\n")  # Add spacing
+            if entry['Type'] == 'ACQ':
+                file.write(f'Type: {entry['Type']}\n')
+                file.write(f'Subject: {entry['Subject']}\n')
+                file.write(f'Object: {entry['Object']}\n')
+                file.write(f'Year: {entry['Year']}\n\n')
 
 write_results_to_file(generated_results, './txts/genout.txt')
 

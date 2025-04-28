@@ -97,12 +97,14 @@ def update_graph(selected_year, label_filter):
         print(f'Matched nodes (first {min(10, len(matched_nodes))}): {matched_nodes[:(min(9, len(matched_nodes) - 1))]}')
         rel = set()
         for node in matched_nodes:
-            rel.add(node)
-            rel.add(nx.ancestors(G, node))
-            rel.add(nx.desceneants(G, node))
+            rel.update(nx.ancestors(G, node))
+            rel.update(nx.descendants(G, node))
+        rel.update(matched_nodes)
         print(f'Total related nodes: {len(rel)}')
+        base_graph = G.subgraph(rel).copy()
     else:
         rel = set(G.nodes)
+        base_graph = G.copy()
 
     filtered_G = nx.DiGraph()
 
@@ -170,6 +172,23 @@ def update_graph(selected_year, label_filter):
 
     # Step 5: Build the figure
     fig = go.Figure()
+
+    # Add directional arrows using annotations
+    for u, v in filtered_G.edges():
+        x0, y0 = pos[u]
+        x1, y1 = pos[v]
+        fig.add_annotation(
+            x=x1, y=y1,
+            ax=x0, ay=y0,
+            xref="x", yref="y",
+            axref="x", ayref="y",
+            showarrow=True,
+            arrowhead=3,
+            arrowsize=1.5,
+            arrowwidth=1,
+            opacity=0.5,
+            arrowcolor='gray'
+        )
 
     fig.add_trace(go.Scatter(
         x=edge_x, y=edge_y,

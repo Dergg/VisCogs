@@ -7,4 +7,4 @@
 
 ## How am I tackling this?
 
-Using either NLTK or spaCy (currently still experimenting with both), I aim to use natural language processing algorithms to extract different categories of events and an associated timestamp so they can be visually shown as a temporal network graph, detailing various record labels and relationships between them.
+Using spaCy, I aim to use natural language processing algorithms to extract different categories of events and an associated timestamp so they can be visually shown as a temporal network graph, detailing various record labels and relationships between them.

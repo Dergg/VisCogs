@@ -103,9 +103,6 @@ try:
         ] # Add more to this later if things aren't getting caught
         # See if spaCy can get these patterns too? Penn Treebank Project POS tags
 
-
-
-
         # Extracted information
         extracted_info = []
 

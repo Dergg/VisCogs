@@ -6,7 +6,7 @@ import argparse
 import re
 import spacy.displacy as sd
 
-# Argument Parsing
+# Argument parsing
 parser = argparse.ArgumentParser(prog='sst', description='Special SpaCy Tagging software')
 parser.add_argument('infile')
 parser.add_argument('-sm', '--use_sm', action='store_true')
@@ -14,7 +14,7 @@ parser.add_argument('-lg', '--use_lg', action='store_true')
 parser.add_argument('-displacy', '--displacy', action='store_true')
 args = parser.parse_args()
 
-# Load SpaCy Model with Fallback
+# Load spaCy models
 if args.use_sm:
     nlp = spacy.load('en_core_web_sm')
 elif args.use_lg:
@@ -23,7 +23,7 @@ else:
     print("No model specified, defaulting to en_core_web_sm.")
     nlp = spacy.load('en_core_web_sm')
 
-# Read CSV File
+# Read CSV file
 try:
     df = pd.read_csv(f'./csvs/{args.infile}.csv')
 except FileNotFoundError:
@@ -42,19 +42,19 @@ def extract_info(text):
     object_ = 'Unknown'
     event_type = 'FND' # Default to founding event
     
-    # Extract Year (Earliest Found)
+    # Extract earliest found year 
     years = [int(match.group()) for match in re.finditer(r'\b(19\d{2}|20\d{2})\b', text)]
     if years:
         year = str(min(years))
 
-    # Extract Entities (Using NER)
+    # Extract entities (NER)
     for ent in doc.ents:
         if ent.label_ == "PERSON":
             founders.add(ent.text)
         elif ent.label_ == "ORG" and label == "Unknown":
             label = ent.text
 
-    # Handle Missing ORG Label via Dependency Parsing
+    # If we're missing an organisation... use dependency parsing
     if label == "Unknown":
         for token in doc:
             if token.lemma_ in {"found", "create", "establish"}:
@@ -62,12 +62,12 @@ def extract_info(text):
                 if candidates:
                     label = max(candidates, key=len)
 
-    # Extract Numeric Entity IDs (e.g., [a228172] → 228172)
+    # Extract numeric entity IDs (e.g., [a228172] → 228172)
     numeric_entities = re.findall(r'\[(?:[a-zA-Z])?(\d+)\]', text)
     if numeric_entities:
         founders.update(numeric_entities)
 
-    # Extract Additional Founders Using POS Tagging (Proper Nouns)
+    # Extract additional founders with POS tagging (Proper Nouns)
     temp_name = []
     for token in doc:
         # Acquisition
@@ -98,7 +98,7 @@ def extract_info(text):
             founders.add(" ".join(temp_name))
             temp_name = []
 
-    # Return Processed Data
+    # Return processed data
     if event_type == 'FND':
         return {
             "Type": event_type,
@@ -114,10 +114,10 @@ def extract_info(text):
             "Year": year
         }
 
-# Process All Sentences
+# Process sentences
 generated_results = [extract_info(sentence) for sentence in df['cleaned_sentence']]
 
-# Write Results to File
+# Write results to file
 def write_results_to_file(results, file_path):
     """Writes extracted results to a text file in a structured format."""
     with open(file_path, "w", encoding="utf-8") as file:
@@ -129,7 +129,7 @@ def write_results_to_file(results, file_path):
 
 write_results_to_file(generated_results, './txts/genout.txt')
 
-# Serve Displacy Visualizations (if requested)
+# Serve displacy visualizations (if requested)
 if args.displacy:
     for sentence in df['cleaned_sentence']:
         nlps = nlp(sentence)
